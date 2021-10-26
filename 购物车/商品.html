@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商品页</title>
+</head>
+<body>
+  <style>
+    *{
+      margin: 0;
+      padding: 0;
+    }
+    .list{
+      display: flex;
+      justify-content: space-around;
+    }
+    .item{
+      list-style-type: none;
+    }
+    .grey{
+      color: grey;
+      font-size: 12px;
+    }
+    .newPrice{
+      color: red;
+      font-size: 20px;
+    }
+    .oldPrice{
+      color: grey;
+      font-size: 13px;
+      text-decoration: line-through;
+    }
+    .btn{
+      width: 110px;
+      height: 30px;
+      color: white;
+      background-color: red;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .goCar{
+      margin-top: 10px;
+    }
+    .goCar a{
+      color: white;
+      text-decoration: none;
+    }
+    .change{
+      background-color: grey;
+      pointer-events: none;
+    }
+  </style>
+  <div class="main">
+    <ul class="list"></ul>
+  </div>
+<script>
+  var data = [
+    {check:0,id:1,imgUrl:"./img/1.png",title:"米家智能门锁 标准",greyTitle:"一体化活体指纹识别，多种开锁方式",newPrice:"1.00",oldPrice:"1299",btnText:"点击加入购物车",num:1,keys:"data0"},
+    {check:0,id:2,imgUrl:"./img/2.png",title:"MUOY 6寸相框摆台",greyTitle:"美观耐用 自由百搭",newPrice:"1.00",oldPrice:"9.9",btnText:"点击加入购物车",num:1,keys:"data1"},
+    {check:0,id:3,imgUrl:"./img/3.png",title:"小米旅行箱 青春款2",greyTitle:"环保材料，轻便重叠",newPrice:"199.00",oldPrice:"249",btnText:"点击加入购物车",num:1,keys:"data2"},
+    {check:0,id:4,imgUrl:"./img/4.png",title:"MUOY 小魔爪按摩",greyTitle:"全身按摩，小巧百搭",newPrice:"1.00",oldPrice:"9.9",btnText:"点击加入购物车",num:1,keys:"data3"},
+    {check:0,id:5,imgUrl:"./img/5.png",title:"小米路由器4A千兆版",greyTitle:"双核全千兆AC1200路由器",newPrice:"149.00",oldPrice:"166",btnText:"点击加入购物车",num:1,keys:"data4"},
+    {check:0,id:6,imgUrl:"./img/6.png",title:"米家压力IH电饭煲",greyTitle:"智能烹饪",newPrice:"799.00",oldPrice:"999",btnText:"点击加入购物车",num:1,keys:"data5"}
+  ];
+  //获取页面元素
+  var list = document.querySelector(".list");
+  //构建页面
+  for(let i=0;i<data.length;i++){
+      var liItem = document.createElement("li");
+      liItem.innerHTML = `<img class="img" src="${data[i].imgUrl}">
+      <div class="main-right">
+          <p>${data[i].title}</p>
+          <p class="grey">${data[i].greyTitle}</p>
+          <div class="newPrice">${data[i].newPrice}</div>
+          <div class="oldPrice">${data[i].oldPrice}</div>
+          <button class="btn">${data[i].btnText}</button>
+          </div>`;
+          liItem.classList.add("item");
+          list.appendChild(liItem);
+        };
+        liItem.innerHTML += `<button class="btn goCar"><a href="./car.html">去购物车</a></button>`;
+      //获取所有按钮元素
+      var btn = document.querySelectorAll(".btn");
+    //功能入口
+    for(let i=0;i<btn.length;i++){
+      btn[i].onclick = function(){
+        // btn[i].innerHTML = "加入成功";
+        // btn[i].classList.add("change");
+        //读取缓存，获取缓存的数据
+        var tempScInfo = getShoppingCarInfo();
+        //如果缓存中有这个商品了，那就num++
+        var flag = false;
+        for(let j=0;j<tempScInfo.length;j++){
+          if(tempScInfo[j].id == data[i].id){
+            tempScInfo[j].num++;
+            //状态守卫变更
+            flag = true;
+            break;
+          }
+        }
+        if(flag == false){
+          tempScInfo.push(data[i]);
+        }
+        //再将读取出来发生变化的数组，重新存入到缓存中
+        window.localStorage.setItem("shoppingCarData", JSON.stringify(tempScInfo));
+      }
+    }
+    //工具函数--读取缓存
+    function getShoppingCarInfo(){
+    var scInfo = window.localStorage.getItem("shoppingCarData");
+      if(!scInfo){
+        // 如果缓存为空，则先添加一个默认数据
+        window.localStorage.setItem("shoppingCarData", JSON.stringify([]));
+        // 然后再次读取，保证scInfo变量有值
+        scInfo = JSON.parse(window.localStorage.getItem("shoppingCarData"));
+      }else{
+          // 如果缓存不为空，则直接数据转换即可。
+          scInfo = JSON.parse(scInfo);
+        }
+      return scInfo;
+    }
+</script>
+</body>
+</html>

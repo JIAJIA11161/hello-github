@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>购物车</title>
+</head>
+<body>
+  <style>
+    *{
+      margin: 0;
+      padding: 0;
+    }
+    .list{
+      width: 1000px;
+    }
+    .item{
+      display: flex;
+      list-style-type: none;
+      border-bottom: 1px grey solid;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .item input{
+      margin-top: 122px;
+      margin-right: 10px;
+    }
+    img{
+      margin-right: 20px;
+    }
+    .t{
+      width: 300px;
+    }
+    .grey-title{
+      color: grey;
+      font-size: 12px;
+      line-height: 100px;
+    }
+    .price{
+      width: 200px;
+      margin-top: 50px;
+    }
+    .oldPrice{
+      text-decoration: line-through;
+    }
+    .shopNum{
+      width: 100px;
+      display: flex;
+      margin-top: 80px;
+    }
+    .reduce,.add{
+      width: 20px;
+      height: 20px;
+      border: 1px grey solid;
+      text-align: center;
+      line-height: 20px;
+      background-color: rgb(235, 235, 235);
+      cursor: pointer;
+    }
+    .num{
+      width: 30px;
+      height: 20px;
+      text-align: center;
+      line-height: 20px;
+      border-top: 1px grey solid;
+      border-bottom: 1px grey solid;
+    }
+    .del{
+      margin-top: 80px;
+      cursor: pointer;
+      color: grey;
+    }
+    .main-bottom{
+      width: 1000px;
+      display: flex;
+      justify-content: space-between;
+      padding: 25px 10px;
+      box-sizing: border-box;
+    }
+    .del-all,.goShop{
+      color: rgb(0,204,204);
+      cursor: pointer;
+    }
+    .cont{
+      display: flex;
+      justify-content: space-around;
+      width: 300px;
+    }
+    .cont p{
+      width: 150px;
+    }
+  </style>
+  <div class="main">
+    <ul class="list"></ul>
+    <div class="main-bottom">
+    <div class="check-all"><input type="checkbox" class="chose-all">全选</div>
+    <div class="del-all">全部删除</div>
+    <div class="cont">
+        <p>总数：<sapn class="total-num"></span></p>
+        <p>总价：<sapn class="total-price"></span></p>
+      </div>
+      <div class="goShop">去结算</div>
+  </div>
+</div>
+  <script>
+    //设置基本变量
+    var price = 0;
+    var dataCar = [];
+    //获取页面元素
+    var listUl = document.querySelector(".list");
+    var main = document.querySelector(".main");
+    //获取缓存数据
+    var carArr = getShoppingCarInfo();
+    // for(let k=0;k<carArr.length;k++){
+      
+    // }
+    //动态构建页面
+    for(let i=0;i<carArr.length;i++){
+      var li = document.createElement("li");
+      //循环绑定单选框，校验单选框的状态
+      var check = " ";
+      if(carArr[i].check == 1){
+        check = "checked";
+      }else if(carArr[i].check == 0){
+        check = " ";
+      }
+      li.innerHTML = `<input type="checkbox" ${check}>
+      <img src="${carArr[i].imgUrl}">
+      <div class="t">
+        <p class="title">${carArr[i].title}</p>
+        <p class="grey-title">${carArr[i].greyTitle}</p>
+        </div>
+        <div class="price">
+          <p class="oldPrice">原价：${carArr[i].oldPrice}元</p>
+          <p class="newPrice">现价：${carArr[i].newPrice}元</p>
+          </div>
+        <div class="shopNum">
+          <div class="reduce">-</div>
+          <div class="num">${carArr[i].num}</div>
+          <div class="add">+</div>
+          </div>
+        <div class="del">删除</div>
+        `;
+      li.setAttribute("data-id",carArr[i].id);
+      li.classList.add("item");
+      listUl.appendChild(li);
+    };
+    
+    //获取动态添加的页面元素
+    var reduce = document.querySelectorAll(".reduce");
+    var add = document.querySelectorAll(".add");
+    var numBox = document.querySelectorAll(".num");
+    var choseAll = document.querySelector(".chose-all");
+    //执行函数
+    checkBoxEvent();
+    allCheckBoxEvent();
+    check_AllCheckBox();
+    // check_checkBox();
+    reduceNum();
+    //工具函数--点击减少商品数量
+    function reduceNum(){
+      //循环绑定点击事件
+      for(let i=0;i<reduce.length;i++){
+        reduce[i].onclick = function(){
+          //获取缓存
+          var tempScInfo = getShoppingCarInfo();
+          tempScInfo[i].num--;
+          //阈值
+          if(tempScInfo[i].num < 1){
+            tempScInfo[i].num = 1;
+            alert("商品数量最少为1！");
+          }
+          window.localStorage.setItem("shoppingCarData", JSON.stringify(tempScInfo));
+          //将改变后的数字重新渲染到页面
+          numBox[i].innerHTML = tempScInfo[i].num;
+          // reloadPage();
+          if(tempScInfo[i].check == 1){
+            renderAllPrice_AllNum();
+          }
+        }
+      }
+    };
+    addNum();
+    //工具函数--点击增加商品数量
+    function addNum(){
+      //循环绑定点击事件
+      for(let i=0;i<add.length;i++){
+        add[i].onclick = function(){
+          //获取缓存
+          var tempScInfo = getShoppingCarInfo();
+          tempScInfo[i].num++;
+          window.localStorage.setItem("shoppingCarData", JSON.stringify(tempScInfo));
+          //将改变后的数字重新渲染到页面
+          // reloadPage();
+          numBox[i].innerHTML = tempScInfo[i].num;
+          if(tempScInfo[i].check == 1){
+            renderAllPrice_AllNum();
+          }
+        }
+      }
+    }
+    deleteThis();
+    //工具函数--点击删除购物车当前商品
+    function deleteThis(){
+      var del = document.querySelectorAll(".del");
+      //获取缓存
+      var tempScInfo =getShoppingCarInfo();
+      for(let i=0;i<del.length;i++){
+        del[i].onclick = function(){
+          //创建一个空数组将没有删除的商品数据放入
+          var tempInfo = [];
+          //遍历缓存里的商品数据，
+          for(let j=0;j<tempScInfo.length;j++){
+            if(tempScInfo[j].id != tempScInfo[i].id){
+              //将点击删除的商品之外的商品数据放入新数组
+              tempInfo.push(tempScInfo[j]);
+            }
+          }
+          //把剩下的商品信息更新到缓存
+          window.localStorage.setItem("shoppingCarData", JSON.stringify(tempInfo));
+          reloadPage();
+        }
+      }
+    }
+    //工具函数--刷新页面
+    function reloadPage(){
+      setTimeout(() => {
+        location.reload();
+      }, 100);
+    }
+    var delAll = document.querySelector(".del-all");
+    deleteAll();
+    //工具函数--点击删除购物车选中的全部商品
+    function deleteAll(){
+      delAll.onclick = function(){
+        //获取缓存
+        var tempScInfo = getShoppingCarInfo();
+        //创建一个空数组，放没有删除的商品数据
+        var tempInfo = [];
+        for(let i=0;i<tempScInfo.length;i++){
+          // console.log(tempScInfo[i].check)
+          if(tempScInfo[i].check !== 1){
+            tempInfo.push(tempScInfo[i]);
+          }
+        }
+        window.localStorage.setItem("shoppingCarData", JSON.stringify(tempInfo));
+        reloadPage();
+      }
+    };
+     //工具函数--所有单选按钮的点击事件
+     function checkBoxEvent(){
+      var chose = document.querySelectorAll(".item>input");
+      for(let i=0;i<chose.length;i++){
+        chose[i].onclick = function(){
+          //点击之后先获取缓存
+          var tempScInfo = getShoppingCarInfo();
+          tempScInfo.filter(function(current){
+            //找到缓存里的商品ID和当前点击的商品ID相同的数据
+            if(current.id == chose[i].parentNode.dataset.id){
+              //更改check的数据状态
+              if(chose[i].checked == true){
+                current.check = 1;
+              }else{
+                current.check = 0;
+              }
+            }
+          });
+          //将修改后的数据重新存入缓存中
+          window.localStorage.setItem("shoppingCarData", JSON.stringify(tempScInfo));
+          //重新渲染总价和总数
+          renderAllPrice_AllNum();
+          //全选校验
+          check_AllCheckBox();
+          }
+        }
+    };
+    //工具函数--点击全选或取消全选
+    function allCheckBoxEvent(){
+      //功能入口
+      choseAll.onclick = function(){
+        //获取缓存
+        var tempScInfo = getShoppingCarInfo();
+        var flag = "";
+        if(choseAll.checked == true){
+          flag = 1;  
+        }else{
+          flag = 0;
+        }
+        for(let i=0;i<tempScInfo.length;i++){
+          tempScInfo[i].check = flag;
+        }
+        //更新缓存
+        window.localStorage.setItem("shoppingCarData", JSON.stringify(tempScInfo));
+        //改变上面所有商品单选按钮的状态
+        var chose = document.querySelectorAll(".item>input");
+        for(let k=0;k<tempScInfo.length;k++){
+            chose[k].checked = this.checked;            
+        }
+        //渲染总价与总数
+        renderAllPrice_AllNum();
+      }
+    };
+    //工具函数--全选校验,如果上面的所有单选框都为true，则将全选框也变为true
+    function check_AllCheckBox(){
+      //获取缓存
+      var tempScInfo = getShoppingCarInfo();
+      var flag = true;
+      for(let i=0;i<tempScInfo.length;i++){
+        if(tempScInfo[i].check == 0){
+          flag = false;
+          break;
+        }
+      }
+      if(flag){
+        choseAll.checked = true;
+      }else{
+        choseAll.checked = false;
+      }
+    };
+    //工具函数--渲染总价和总数
+    function renderAllPrice_AllNum(){
+      //渲染总价
+      renderAllPrice();
+      //渲染总数
+      renderAllNum();
+    };
+    //工具函数--渲染总价
+    function renderAllPrice(){
+      //先获取缓存
+      var tempScInfo = getShoppingCarInfo();
+      var totalPrice = 0;
+      //在缓存中找到check为1相对应的newPrice值
+      for(let i=0;i<tempScInfo.length;i++){
+        if(tempScInfo[i].check == 1){
+          totalPrice += Number(tempScInfo[i].newPrice) * Number(tempScInfo[i].num);
+        }
+      }
+      document.querySelector(".cont .total-price").innerHTML = totalPrice + "元";
+    };
+    //工具函数--渲染总数
+    function renderAllNum(){
+      //先获取缓存
+      var tempScInfo = getShoppingCarInfo();
+      var sum = 0;
+      //在缓存中找到check为1相对应的num值
+      for(let i=0;i<tempScInfo.length;i++){
+        if(tempScInfo[i].check == 1){
+          sum += tempScInfo[i].num;
+        }
+      }
+      document.querySelector(".cont .total-num").innerHTML = sum;
+    };
+    //工具函数--读取缓存
+    function getShoppingCarInfo(){
+    var scInfo = window.localStorage.getItem("shoppingCarData");
+      if(!scInfo){
+        // 如果缓存为空，则先添加一个默认数据
+        window.localStorage.setItem("shoppingCarData", JSON.stringify([]));
+        // 然后再次读取，保证scInfo变量有值
+        scInfo = JSON.parse(window.localStorage.getItem("shoppingCarData"));
+      }else{
+          // 如果缓存不为空，则直接数据转换即可。
+          scInfo = JSON.parse(scInfo);
+        }
+      return scInfo;
+    };
+  </script>
+</body>
+</html>
